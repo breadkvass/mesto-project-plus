@@ -45,6 +45,7 @@
       }
     ],
     "no-console": "off",
-    "eol-last": ["error", "never"]
+    "eol-last": ["error", "never"],
+    "arrow-body-style": "off"
   }
 }
