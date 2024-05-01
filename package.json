@@ -25,6 +25,7 @@
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
+    "celebrate": "^15.0.3",
     "express": "^4.18.1",
     "mongoose": "^6.12.8"
   }
