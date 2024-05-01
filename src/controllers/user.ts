@@ -29,3 +29,25 @@ export const createUser = (req: Request, res: Response) => {
       res.status(500).send({ message: 'Произошла ошибка' });
     });
 };
+
+export const updateUser = (req: Request, res: Response) => {
+  const { name, about } = req.body;
+
+  return User.findByIdAndUpdate(req.user?._id, { name, about })
+    .then((user) => res.send({ data: user }))
+    .catch((e) => {
+      console.log(e);
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
+};
+
+export const updateAvatar = (req: Request, res: Response) => {
+  const { avatar } = req.body;
+
+  return User.findByIdAndUpdate(req.user?._id, { avatar })
+    .then((user) => res.send({ data: user }))
+    .catch((e) => {
+      console.log(e);
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
+};
