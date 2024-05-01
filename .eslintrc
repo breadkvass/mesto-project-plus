@@ -46,6 +46,7 @@
     ],
     "no-console": "off",
     "eol-last": ["error", "never"],
-    "arrow-body-style": "off"
+    "arrow-body-style": "off",
+    "max-classes-per-file": "false"
   }
 }
