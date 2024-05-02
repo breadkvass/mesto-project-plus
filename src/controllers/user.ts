@@ -1,53 +1,79 @@
-import { Request, Response } from 'express';
-import User from '../models/user';
+import { Request, Response, NextFunction } from 'express';
+import { User } from '../models/user';
+import { NotFoundError } from '../types/errors';
 
-export const getUsers = (req: Request, res: Response) => {
-  return User.find({})
-    .then((users) => res.send({ data: users }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const getUserById = (req: Request, res: Response) => {
-  return User.findById(req.params.id)
-    .then((user) => res.send({ data: user }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new NotFoundError('Пользователь не найден');
+    }
+
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const createUser = (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const { name, about, avatar } = req.body;
 
-  return User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
+  try {
+    const newUser = User.create({ name, about, avatar });
+
+    res.json(newUser);
+    res.status(201).json(newUser);
+  } catch (error) {
+    next(error || new Error('Ошибка создания карточки'));
+  }
 };
 
-export const updateUser = (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   const { name, about } = req.body;
+  const userId = req.user?._id;
 
-  return User.findByIdAndUpdate(req.user?._id, { name, about })
-    .then((user) => res.send({ data: user }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, { name, about }, {
+      runValidators: true, new: true,
     });
+
+    if (!updatedUser) {
+      throw new NotFoundError('Пользователь не найден');
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const updateAvatar = (req: Request, res: Response) => {
+export const updateAvatar = async (req: Request, res: Response, next: NextFunction) => {
   const { avatar } = req.body;
+  const userId = req.user?._id;
 
-  return User.findByIdAndUpdate(req.user?._id, { avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, {
+      runValidators: true, new: true,
     });
+
+    if (!updatedUser) {
+      throw new NotFoundError('Пользователь не найден');
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
 };
