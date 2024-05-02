@@ -1,44 +1,89 @@
-import { Request, Response } from 'express';
-import Card from '../models/card';
+import { Request, Response, NextFunction } from 'express';
+import { Card } from '../models/card';
+import { NotFoundError, ForbiddenError } from '../types/errors';
 
-export const getCards = (req: Request, res: Response) => {
-  return Card.find({})
-    .then((cards) => res.send({ data: cards }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
+export const getCards = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cards = await Card.find();
+    res.json(cards);
+  } catch (error) {
+    next(new Error('Ошибка получения карточек'));
+  }
 };
 
-export const createCard = (req: Request, res: Response) => {
+export const createCard = async (req: Request, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
-  console.log(req.user?._id);
+  const ownerId = req.user?._id;
 
-  return Card.create({ name, link })
-    .then((user) => res.send({ data: user }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
+  try {
+    const newCard = Card.create({ name, link, owner: ownerId });
+
+    res.json(newCard);
+    res.status(201).json(newCard);
+  } catch (error) {
+    next(error || new Error('Ошибка создания карточки'));
+  }
 };
 
-export const deleteCard = (req: Request, res: Response) => {
-  return Card.findByIdAndRemove(req.params.id)
-    .then((card) => res.send({ data: card }))
-    .catch((e) => {
-      console.log(e);
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
+export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
+  const { cardId } = req.params;
+  const userId = req.user?._id;
+
+  try {
+    const card = await Card.findById(cardId);
+
+    if (!card) {
+      throw new NotFoundError('Карточка не найдена');
+    }
+
+    if (card.owner?.toString() !== userId) {
+      throw new ForbiddenError();
+    }
+
+    const deletedCard = await Card.findByIdAndDelete(cardId);
+
+    res.json({ message: 'Карточка успешно удалена', deletedCard });
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const likeCard = (req: Request) => Card.findByIdAndUpdate(
-  req.params.cardId,
-  { $addToSet: { likes: req.user?._id } },
-  { new: true },
-);
+export const likeCard = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user?._id;
 
-export const dislikeCard = (req: Request) => Card.findByIdAndUpdate(
-  req.params.cardId,
-  { $pull: { likes: req.user?._id } },
-  { new: true },
-);
+  try {
+    const likedCard = await Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $addToSet: { likes: userId } },
+      { runValidators: true, new: true },
+    );
+
+    if (!likedCard) {
+      throw new NotFoundError('Карточка не найдена');
+    }
+
+    res.json(likedCard);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unlikeCard = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user?._id;
+
+  try {
+    const unlikedCard = await Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $pull: { likes: userId } },
+      { new: true },
+    );
+
+    if (!unlikedCard) {
+      throw new NotFoundError('Карточка не найдена');
+    }
+
+    res.json(unlikedCard);
+  } catch (error) {
+    next(error);
+  }
+};
