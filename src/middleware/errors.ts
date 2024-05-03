@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
+import { CelebrateError, isCelebrateError } from 'celebrate';
+
 import {
   BadRequestError,
   ForbiddenError,
@@ -7,7 +9,7 @@ import {
 } from '../types/errors';
 
 type ErrorHandler = {
-  error: Error
+  error: Error | CelebrateError;
   _req: Request,
   res: Response,
   next: NextFunction,
@@ -28,7 +30,7 @@ const errorHandler = ({
     || error instanceof ForbiddenError
   ) {
     status = error.status;
-  } else {
+  } else if (isCelebrateError(error)) {
     status = 400;
   }
   res.status(status).json({
