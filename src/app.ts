@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import usersRouter from './routes/user';
 import cardsRouter from './routes/card';
 import { NotFoundError } from './types/errors';
-import  errorHandler from './middleware/errors';
+import errorHandler from './middleware/errors';
 
 const { PORT = 3000 } = process.env;
 
@@ -15,8 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 async function start() {
   try {
     mongoose.set('strictQuery', false);
-    await mongoose.connect("mongodb://127.0.0.1:27017/mestodb", {
-      dbName: 'mestodb'
+    await mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
+      dbName: 'mestodb',
     });
     app.use('/users', usersRouter);
     app.use('/cards', cardsRouter);
