@@ -7,6 +7,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from '../types/errors';
+import HttpStatusCode from '../types/http-codes';
 
 
 const errorHandler = (
@@ -15,7 +16,9 @@ const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  let status = res.statusCode === 200 ? 500 : res.statusCode || 500;
+  let status = res.statusCode === HttpStatusCode.OK
+  ? HttpStatusCode.INTERNAL_SERVER_ERROR
+  : res.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR;
   console.log(error);
 
   if (
@@ -26,10 +29,10 @@ const errorHandler = (
   ) {
     status = error.status;
   } else if (isCelebrateError(error)) {
-    status = 400;
+    status = HttpStatusCode.BAD_REQUEST;
   }
   res.status(status).json({
-    message: error.message,
+    message: 'На сервере произошла ошибка',
   });
 
   next();

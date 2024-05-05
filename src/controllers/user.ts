@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/user';
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../types/errors';
+import HttpStatusCode from '../types/http-codes';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -73,7 +74,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     const { password: hashedPwd, ...userWithoutPwd } = newUser.toObject();
 
-    res.status(201).json(userWithoutPwd);
+    res.status(HttpStatusCode.OK).json(userWithoutPwd);
   } catch (error) {
     next(error);
   }
@@ -153,7 +154,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ message: 'Успешный вход' });
+    res.status(HttpStatusCode.OK).json({ message: 'Успешный вход' });
   } catch(error) {
     next(error);
   }

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Card } from '../models/card';
 import { NotFoundError, ForbiddenError, UnauthorizedError } from '../types/errors';
+import HttpStatusCode from '../types/http-codes';
 
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -21,7 +22,7 @@ export const createCard = async (req: Request, res: Response, next: NextFunction
     }
     const newCard = await Card.create({ name, link, owner: ownerId });
 
-    res.status(201).json(newCard);
+    res.status(HttpStatusCode.OK).json(newCard);
   } catch (error) {
     next(error || new Error('Ошибка создания карточки'));
   }
