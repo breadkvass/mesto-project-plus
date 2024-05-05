@@ -29,6 +29,22 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
+export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user?._id;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new NotFoundError('Пользователь не найден');
+    }
+
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const { name, about, avatar } = req.body;
 
