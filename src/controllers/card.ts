@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Card } from '../models/card';
-import { NotFoundError, ForbiddenError } from '../types/errors';
+import { NotFoundError, ForbiddenError, UnauthorizedError } from '../types/errors';
 
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -16,9 +16,11 @@ export const createCard = async (req: Request, res: Response, next: NextFunction
   const ownerId = req.user?._id;
 
   try {
-    const newCard = Card.create({ name, link, owner: ownerId });
+    if (!ownerId) {
+      throw new UnauthorizedError('Ошибка авторизации')
+    }
+    const newCard = await Card.create({ name, link, owner: ownerId });
 
-    res.json(newCard);
     res.status(201).json(newCard);
   } catch (error) {
     next(error || new Error('Ошибка создания карточки'));
@@ -30,6 +32,9 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
   const userId = req.user?._id;
 
   try {
+    if (!userId) {
+      throw new UnauthorizedError('Ошибка авторизации')
+    }
     const card = await Card.findById(cardId);
 
     if (!card) {

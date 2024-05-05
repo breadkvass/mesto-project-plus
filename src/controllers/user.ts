@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/user';
-import { NotFoundError, UnauthorizedError } from '../types/errors';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../types/errors';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -17,6 +17,10 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
   const { userId } = req.params;
 
   try {
+    if (!userId) {
+      throw new BadRequestError('Не задан идентификатор пользователя')
+    }
+
     const user = await User.findById(userId);
 
     if (!user) {
@@ -33,6 +37,10 @@ export const getUserProfile = async (req: Request, res: Response, next: NextFunc
   const userId = req.user?._id;
 
   try {
+    if (!userId) {
+      throw new UnauthorizedError('Ошибка авторизации')
+    }
+
     const user = await User.findById(userId);
 
     if (!user) {
@@ -76,6 +84,10 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
   const userId = req.user?._id;
 
   try {
+    if (!userId) {
+      throw new UnauthorizedError('Ошибка авторизации')
+    }
+
     const updatedUser = await User.findByIdAndUpdate(userId, { name, about }, {
       runValidators: true, new: true,
     });
@@ -94,7 +106,12 @@ export const updateAvatar = async (req: Request, res: Response, next: NextFuncti
   const { avatar } = req.body;
   const userId = req.user?._id;
 
+  console.log(`Обновление аватара для ${userId} на ${avatar}`);
   try {
+    if (!userId) {
+      throw new UnauthorizedError('Ошибка авторизации')
+    }
+
     const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, {
       runValidators: true, new: true,
     });
@@ -110,9 +127,17 @@ export const updateAvatar = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body;
-
   try {
+    const { email, password } = req.body;
+
+    if (!email) {
+      throw new BadRequestError('Не передан email пользователя');
+    }
+
+    if (!password) {
+      throw new BadRequestError('Не передан пароль пользователя');
+    }
+
     const user = await User.findOne({ email }).select('+password');
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -129,7 +154,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     });
 
     res.status(200).json({ message: 'Успешный вход' });
-  } catch (error) {
+  } catch(error) {
     next(error);
   }
 };
