@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/user';
+import { User, IUser } from '../models/user';
 import { NotFoundError, UnauthorizedError } from '../types/errors';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -46,15 +46,28 @@ export const getUserProfile = async (req: Request, res: Response, next: NextFunc
 };
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
-  const { name, about, avatar } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
   try {
-    const newUser = User.create({ name, about, avatar });
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    res.json(newUser);
-    res.status(201).json(newUser);
+    const newUser: IUser = new User({
+      name,
+      about,
+      avatar,
+      email,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    const { password: hashedPwd, ...userWithoutPwd } = newUser.toObject();
+
+    res.status(201).json(userWithoutPwd);
   } catch (error) {
-    next(error || new Error('Ошибка создания карточки'));
+    next(error);
   }
 };
 
