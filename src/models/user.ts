@@ -9,10 +9,6 @@ export interface IUser extends Document {
   password: string;
 }
 
-// export interface IUserId extends Document {
-//   _id: string;
-// }
-
 const userSchema = new Schema<IUser>({
   name: {
     type: String,
