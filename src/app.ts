@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import mongoose from 'mongoose';
 import usersRouter from './routes/user';
 import cardsRouter from './routes/card';
@@ -20,20 +20,10 @@ async function start() {
     });
     app.use('/users', usersRouter);
     app.use('/cards', cardsRouter);
-
-    app.use('/users', (req: Request, res: Response, next: NextFunction) => {
-      req.user = {
-        _id: '6630ef28bcdc68e00ab0f609',
-      };
-      next();
-    });
-
-    app.use('/cards', (req: Request, res: Response, next: NextFunction) => {
-      req.user = {
-        _id: '6630ef28bcdc68e00ab0f609',
-      };
-      next();
-    });
+    app.use('/signin', usersRouter);
+    app.use('/signup', usersRouter);
+    app.use('/me', usersRouter);
+    app.use('/me/avatar', usersRouter);
 
     app.use((_req, _res, next) => {
       next(new NotFoundError('Запрашиваемый ресурс не найден'));
