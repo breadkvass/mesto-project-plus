@@ -3,6 +3,10 @@ import { Request, Response, NextFunction } from 'express';
 import { UnauthorizedError } from '../types/errors';
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.path === '/users/sigin' || req.path === 'users/signup') {
+    next();
+  }
+
   const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
   if (!token) {

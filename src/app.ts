@@ -4,6 +4,7 @@ import usersRouter from './routes/user';
 import cardsRouter from './routes/card';
 import { NotFoundError } from './types/errors';
 import errorHandler from './middleware/errors';
+import { auth } from 'middleware/auth';
 
 const { PORT = 3000 } = process.env;
 
@@ -18,12 +19,15 @@ async function start() {
     await mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
       dbName: 'mestodb',
     });
+
+    app.use(auth);
+
     app.use('/users', usersRouter);
-    app.use('/cards', cardsRouter);
     app.use('/signin', usersRouter);
     app.use('/signup', usersRouter);
     app.use('/me', usersRouter);
     app.use('/me/avatar', usersRouter);
+    app.use('/cards', cardsRouter);
 
     app.use((_req, _res, next) => {
       next(new NotFoundError('Запрашиваемый ресурс не найден'));
