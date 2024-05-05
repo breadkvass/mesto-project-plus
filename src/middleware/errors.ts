@@ -1,24 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
+import { CelebrateError, isCelebrateError } from 'celebrate';
+
 import {
   BadRequestError,
   ForbiddenError,
   NotFoundError,
   UnauthorizedError,
 } from '../types/errors';
+import HttpStatusCode from '../types/http-codes';
 
-type ErrorHandler = {
-  error: Error
-  _req: Request,
+
+const errorHandler = (
+  error: Error | CelebrateError,
+  req: Request,
   res: Response,
   next: NextFunction,
-}
-
-const errorHandler = ({
-  error,
-  res,
-  next,
-} : ErrorHandler) => {
-  let status = res.statusCode === 200 ? 500 : res.statusCode || 500;
+) => {
+  let status = res.statusCode === HttpStatusCode.OK
+  ? HttpStatusCode.INTERNAL_SERVER_ERROR
+  : res.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR;
   console.log(error);
 
   if (
@@ -28,11 +28,11 @@ const errorHandler = ({
     || error instanceof ForbiddenError
   ) {
     status = error.status;
-  } else {
-    status = 400;
+  } else if (isCelebrateError(error)) {
+    status = HttpStatusCode.BAD_REQUEST;
   }
   res.status(status).json({
-    message: error.message,
+    message: 'На сервере произошла ошибка',
   });
 
   next();
