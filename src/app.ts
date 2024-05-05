@@ -5,7 +5,8 @@ import usersRouter from './routes/user';
 import cardsRouter from './routes/card';
 import { NotFoundError } from './types/errors';
 import errorHandler from './middleware/errors';
-import { auth, requestLogger } from './middleware/auth';
+import { auth } from './middleware/auth';
+import { requestLogger } from './middleware/logger';
 import { createUser, login } from './controllers/user';
 
 const { PORT = 3000 } = process.env;
